@@ -3,12 +3,15 @@ package org.example;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 public class ConcurrentTransactionsDemo {
+
+    public static insertExcelData operateExcel;
+
     public static void main(String[] args) {
         int numThreads = 10;
-        String url = "jdbc:postgresql://192.168.1.112:5432/Bank";
+        String url = "jdbc:postgresql://192.168.1.112:5432/jdbc_db";
         String user = "xzw";
         String password = "Xzw@010816";
-
+        insertExcelData.readData();
         // 创建数据库连接池
         BasicDataSource ds = new BasicDataSource();
         ds.setDriverClassName("org.postgresql.Driver");

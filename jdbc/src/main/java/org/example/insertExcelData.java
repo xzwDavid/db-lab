@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -16,22 +17,24 @@ public class insertExcelData {
     private static final String URL = "jdbc:postgresql://192.168.1.112:5432/jdbc_db";
     private static final String USER = "xzw";
     private static final String PASSWORD = "Xzw@010816";
+    public static List<Student> students;
+    public static List<Course> courses;
 
-    public static void main(String[] args) {
+    public static void readData() {
         String studentFile = "/Users/xuzhongwei/Downloads/students-20.xlsx";
         String courseFile = "/Users/xuzhongwei/Downloads/courses-20.xlsx";
 
         // 读取学生信息
-        List<Student> students = readStudentData(studentFile);
+        students = readStudentData(studentFile);
 
         // 插入学生信息到数据库
 //        insertStudentData(students);
 
         // 读取课程信息
-        List<Course> courses = readCourseData(courseFile);
+        courses = readCourseData(courseFile);
 
         // 插入课程信息到数据库
-        insertCourseData(courses);
+//        insertCourseData(courses);
     }
 
     private static List<Student> readStudentData(String fileName) {
@@ -95,44 +98,83 @@ public class insertExcelData {
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             String sql = "INSERT INTO student (\"S#\", sname, sex, bdate, height, dorm) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            for (Student student : students) {
-                stmt.setLong(1, student.getId());
-                stmt.setString(2, student.getName());
-                stmt.setString(3, student.getSex());
-                stmt.setString(4, student.getBdate());
-                stmt.setDouble(5, student.getHeight());
-                stmt.setString(6, student.getDorm());
-                stmt.executeUpdate();
-            }
+            Random random = new Random(); // 创建随机数生成器对象
+            int size = students.size(); // 获取学生对象列表的长度
+            int index = random.nextInt(size); // 随机选择一个下标
+            Student student = students.get(index); // 获取选中的学生对象
+            stmt.setLong(1, student.getId());
+            stmt.setString(2, student.getName());
+            stmt.setString(3, student.getSex());
+            stmt.setString(4, student.getBdate());
+            stmt.setDouble(5, student.getHeight());
+            stmt.setString(6, student.getDorm());
+            stmt.executeUpdate();
+            students.remove(index); // 删除已选中的学生对象
             System.out.println("Inserted student data successfully.");
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
     }
 
     private static void insertCourseData(List<Course> courses) {
+
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             String sql = "INSERT INTO course (\"C#\", cname, period, credit, teacher) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
-            for (Course course : courses) {
-                String querySql = "SELECT 1 FROM course WHERE \"C#\" = ?";
-                PreparedStatement queryStmt = conn.prepareStatement(querySql);
-                queryStmt.setString(1, course.getId());
-                ResultSet rs = queryStmt.executeQuery();
-                if (!rs.next()) {
-                    stmt.setString(1, course.getId());
-                    stmt.setString(2, course.getName());
-                    stmt.setInt(3, course.getPeriod());
-                    stmt.setDouble(4, course.getCredit());
-                    stmt.setString(5, course.getTeacher());
-                    stmt.executeUpdate();
-                }
+            Random random = new Random(); // 创建随机数生成器对象
+            int size = courses.size(); // 获取课程对象列表的长度
+            int index = random.nextInt(size); // 随机选择一个下标
+            Course course = courses.get(index); // 获取选中的课程对象
+            String querySql = "SELECT 1 FROM course WHERE \"C#\" = ?";
+            PreparedStatement queryStmt = conn.prepareStatement(querySql);
+            queryStmt.setString(1, course.getId());
+            ResultSet rs = queryStmt.executeQuery();
+            if (!rs.next()) {
+                stmt.setString(1, course.getId());
+                stmt.setString(2, course.getName());
+                stmt.setInt(3, course.getPeriod());
+                stmt.setDouble(4, course.getCredit());
+                stmt.setString(5, course.getTeacher());
+                stmt.executeUpdate();
+                courses.remove(index); // 删除已选中的课程对象
+                System.out.println("Inserted course data successfully.");
             }
-            System.out.println("Inserted course data successfully.");
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
     }
 
+    private static void deleteStudentData(List<Student> students){
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            String countSql = "SELECT COUNT(*) FROM table_name"; // 获取表中记录总数的 SQL 语句
+            String deleteSql = "DELETE FROM student WHERE \"S#\" = ?"; // 删除记录的 SQL 语句
+            Statement countStmt = conn.createStatement();
+            ResultSet countRs = countStmt.executeQuery(countSql);
+            countRs.next();
+            int count = countRs.getInt(1); // 获取表中记录总数
+            if (count > 0) {
+                Random random = new Random();
+                int index = random.nextInt(count) + 1; // 随机选择一个记录的下标（从1开始）
+                PreparedStatement deleteStmt = conn.prepareStatement(deleteSql);
+                deleteStmt.setInt(1, index);
+                int rows = deleteStmt.executeUpdate(); // 执行删除操作
+                if (rows > 0) {
+                    System.out.println("Deleted successfully.");
+                } else {
+                    System.out.println("No record found with index=" + index);
+                }
+            } else {
+                System.out.println("No record found.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+    private static void deleteCourseData(List<Course> courses) {
+
+    }
 
 }
