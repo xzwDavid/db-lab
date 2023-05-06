@@ -1,5 +1,5 @@
 # db-lab
-XJTU DATABASE
+XJTU DATABASE.  
 co-author: zhongwei jerry
 
 ## Hey Guys
