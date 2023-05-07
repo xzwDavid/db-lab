@@ -28,17 +28,24 @@ public class insertExcelData {
         //students = readStudentData(studentFile);
 
         // 插入学生信息到数据库
-//        insertStudentData(students);
+        //insertStudentData();
+        //fixStudent();
+        //updateStudenData();
+
         //deleteStudentData(students);
         // 读取课程信息
+        //fixCourse();
         courses = readCourseData(courseFile);
-
+        fixCourse();
+        //updateCourseData();
+        selectCourseData();
+        //selectStudentData();
         // 插入课程信息到数据库
 //        insertCourseData(courses);
-        deleteCourseData(courses);
+        //deleteCourseData();
     }
 
-    private static List<Student> readStudentData(String fileName) {
+    public static List<Student> readStudentData(String fileName) {
         List<Student> students = new ArrayList<>();
         try (FileInputStream fis = new FileInputStream(fileName)) {
             XSSFWorkbook workbook = new XSSFWorkbook(fis);
@@ -67,7 +74,7 @@ public class insertExcelData {
         return students;
     }
 
-    private static List<Course> readCourseData(String fileName) {
+    public static List<Course> readCourseData(String fileName) {
         List<Course> courses = new ArrayList<>();
         try (FileInputStream fis = new FileInputStream(fileName)) {
             XSSFWorkbook workbook = new XSSFWorkbook(fis);
@@ -95,7 +102,7 @@ public class insertExcelData {
         return courses;
     }
 
-    private static void insertStudentData(List<Student> students) {
+    public static void insertStudentData() {
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             String sql = "INSERT INTO student (\"S#\", sname, sex, bdate, height, dorm) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -103,15 +110,21 @@ public class insertExcelData {
             int size = students.size(); // 获取学生对象列表的长度
             int index = random.nextInt(size); // 随机选择一个下标
             Student student = students.get(index); // 获取选中的学生对象
-            stmt.setLong(1, student.getId());
-            stmt.setString(2, student.getName());
-            stmt.setString(3, student.getSex());
-            stmt.setString(4, student.getBdate());
-            stmt.setDouble(5, student.getHeight());
-            stmt.setString(6, student.getDorm());
-            stmt.executeUpdate();
-            students.remove(index); // 删除已选中的学生对象
-            System.out.println("Inserted student data successfully.");
+            String querySql = "SELECT 1 FROM course WHERE \"C#\" = ?";
+            PreparedStatement queryStmt = conn.prepareStatement(querySql);
+            queryStmt.setLong(1, student.getId());
+            ResultSet rs = queryStmt.executeQuery();
+            if (!rs.next()) {
+                stmt.setLong(1, student.getId());
+                stmt.setString(2, student.getName());
+                stmt.setString(3, student.getSex());
+                stmt.setString(4, student.getBdate());
+                stmt.setDouble(5, student.getHeight());
+                stmt.setString(6, student.getDorm());
+                stmt.executeUpdate();
+                students.remove(index); // 删除已选中的学生对象
+                System.out.println("Inserted student data successfully.");
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -120,7 +133,7 @@ public class insertExcelData {
 
     }
 
-    private static void insertCourseData(List<Course> courses) {
+    public static void insertCourseData() {
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             String sql = "INSERT INTO course (\"C#\", cname, period, credit, teacher) VALUES (?, ?, ?, ?, ?)";
@@ -149,7 +162,7 @@ public class insertExcelData {
 
     }
 
-    private static void deleteStudentData(List<Student> students){
+    public static void deleteStudentData(){
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             String countSql = "SELECT COUNT(*) FROM student"; // 获取表中记录总数的 SQL 语句
             String deleteSql = "DELETE FROM student WHERE \"S#\" = ?"; // 删除记录的 SQL 语句
@@ -186,7 +199,7 @@ public class insertExcelData {
         }
 
     }
-    private static void deleteCourseData(List<Course> courses) {
+    public static void deleteCourseData() {
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             String countSql = "SELECT COUNT(*) FROM course"; // 获取表中记录总数的 SQL 语句
             String deleteSql = "DELETE FROM course WHERE \"C#\" = ?"; // 删除记录的 SQL 语句
@@ -222,5 +235,165 @@ public class insertExcelData {
             e.printStackTrace();
         }
     }
+
+    public static void updateStudenData(){
+        try(Connection conn = DriverManager.getConnection(URL,USER,PASSWORD)){
+            Random random = new Random();
+            int index = random.nextInt(students.size());
+            Student student = students.get(index);
+            Long sId = student.getId();
+            int num = random.nextInt(2);
+            String updateSql;
+            if(num < 1) {
+                updateSql = "UPDATE student SET height = height+0.1 where \"S#\" = ?";
+            }
+            else{
+                updateSql = "UPDATE student SET dorm = \'教务处\' where \"S#\" = ? ";
+            }
+
+            PreparedStatement stmt = conn.prepareStatement(updateSql);
+            stmt.setLong(1,sId);
+            int rows = stmt.executeUpdate();
+            if(rows > 0){
+                System.out.println("Update successfully.");
+                System.out.println("The updatesd student is "+student);
+            }else{
+                System.out.println("No such student!");
+            }
+
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void updateCourseData(){
+        try(Connection conn = DriverManager.getConnection(URL,USER,PASSWORD)){
+            Random random = new Random();
+            int index = random.nextInt(courses.size());
+            Course course = courses.get(index);
+            int con = random.nextInt(2);
+            String updateSql;
+            if(con < 1){
+                updateSql = "UPDATE course SET period = 0 where \"C#\" = ?";
+            }else{
+                updateSql = "UPDATE course SET teacher = \'TEST老师\' where \"C#\" = ?";
+            }
+            PreparedStatement stmt = conn.prepareStatement(updateSql);
+            stmt.setString(1, course.getId());
+            int rows = stmt.executeUpdate();
+            if(rows > 0){
+                System.out.println("Update successfully.");
+                System.out.println("The updated course is "+course);
+            }else{
+                System.out.println("No such course!");
+            }
+
+
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void selectStudentData(){
+        try(Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)){
+            Random random = new Random();
+            int index = random.nextInt(students.size());
+            Student student = students.get(index);
+            long sId = student.getId();
+            String selectSql = "SELECT * FROM student WHERE \"S#\" = ?";
+            PreparedStatement stmt = conn.prepareStatement(selectSql);
+            stmt.setLong(1, sId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) { // 循环遍历查询结果集
+                long id = rs.getLong("S#");
+                String name = rs.getString("sname");
+                String sex = rs.getString("sex");
+                String bdate = rs.getString("bdate");
+                double height = rs.getDouble("height");
+                String dorm = rs.getString("dorm");
+                Student queriedStudent = new Student(id, name, sex, bdate, height, dorm);
+                System.out.println("Queried student: " + queriedStudent);
+            }
+
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    public static void selectCourseData(){
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            Random random = new Random();
+            int index = random.nextInt(courses.size());
+            Course course = courses.get(index);
+            String cId = course.getId();
+            String selectSql = "SELECT * FROM course WHERE \"C#\" = ?";
+            PreparedStatement stmt = conn.prepareStatement(selectSql);
+            stmt.setString(1, cId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) { // 循环遍历查询结果集
+                String id = rs.getString("C#");
+                String name = rs.getString("cname");
+                int period = rs.getInt("period");
+                double credit = rs.getDouble("credit");
+                String teacher = rs.getString("teacher");
+                Course queriedCourse = new Course(id, name, period, credit, teacher);
+                System.out.println("Queried course: " + queriedCourse);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public static void fixCourse(){
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            String sql = "INSERT INTO course (\"C#\", cname, period, credit, teacher) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            for (Course course : courses) {
+                String querySql = "SELECT 1 FROM course WHERE \"C#\" = ?";
+                PreparedStatement queryStmt = conn.prepareStatement(querySql);
+                queryStmt.setString(1, course.getId());
+                ResultSet rs = queryStmt.executeQuery();
+                if (!rs.next()) { // 如果课程不在数据库中，插入该课程
+                    stmt.setString(1, course.getId());
+                    stmt.setString(2, course.getName());
+                    stmt.setInt(3, course.getPeriod());
+                    stmt.setDouble(4, course.getCredit());
+                    stmt.setString(5, course.getTeacher());
+                    stmt.executeUpdate();
+                    System.out.println("Inserted course " + course.getId() + " successfully.");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    private static void fixStudent(){
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            String sql = "INSERT INTO student (\"S#\", sname, sex, bdate, height, dorm) VALUES (?, ?, ?, ?, ?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            for (Student student : students) {
+                String querySql = "SELECT 1 FROM student WHERE \"S#\" = ?";
+                PreparedStatement queryStmt = conn.prepareStatement(querySql);
+                queryStmt.setLong(1, student.getId());
+                ResultSet rs = queryStmt.executeQuery();
+                if (!rs.next()) { // 如果学生不在数据库中，插入该学生
+                    stmt.setLong(1, student.getId());
+                    stmt.setString(2, student.getName());
+                    stmt.setString(3, student.getSex());
+                    stmt.setString(4, student.getBdate());
+                    stmt.setDouble(5, student.getHeight());
+                    stmt.setString(6, student.getDorm());
+                    stmt.executeUpdate();
+                    System.out.println("Inserted student " + student.getId() + " successfully.");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
 
 }
