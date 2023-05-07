@@ -16,6 +16,11 @@ public class Student {
         this.dorm = dorm;
     }
 
+    @Override
+    public String toString() {
+        return String.format("Student{id=%d, name='%s', sex='%s', bdate='%s', height=%.2f, dorm='%s'}", id, name, sex, bdate, height, dorm);
+    }
+
     public Long getId() {
         return id;
     }

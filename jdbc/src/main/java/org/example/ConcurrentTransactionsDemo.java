@@ -11,7 +11,7 @@ public class ConcurrentTransactionsDemo {
         String url = "jdbc:postgresql://192.168.1.112:5432/jdbc_db";
         String user = "xzw";
         String password = "Xzw@010816";
-        insertExcelData.readData();
+        //sinsertExcelData.readData();
         // 创建数据库连接池
         BasicDataSource ds = new BasicDataSource();
         ds.setDriverClassName("org.postgresql.Driver");

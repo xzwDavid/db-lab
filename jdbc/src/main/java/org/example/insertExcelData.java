@@ -20,21 +20,22 @@ public class insertExcelData {
     public static List<Student> students;
     public static List<Course> courses;
 
-    public static void readData() {
+    public static void main(String[] args) {
         String studentFile = "/Users/xuzhongwei/Downloads/students-20.xlsx";
         String courseFile = "/Users/xuzhongwei/Downloads/courses-20.xlsx";
 
         // 读取学生信息
-        students = readStudentData(studentFile);
+        //students = readStudentData(studentFile);
 
         // 插入学生信息到数据库
 //        insertStudentData(students);
-
+        //deleteStudentData(students);
         // 读取课程信息
         courses = readCourseData(courseFile);
 
         // 插入课程信息到数据库
 //        insertCourseData(courses);
+        deleteCourseData(courses);
     }
 
     private static List<Student> readStudentData(String fileName) {
@@ -115,6 +116,8 @@ public class insertExcelData {
             e.printStackTrace();
         }
 
+
+
     }
 
     private static void insertCourseData(List<Course> courses) {
@@ -148,33 +151,76 @@ public class insertExcelData {
 
     private static void deleteStudentData(List<Student> students){
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
-            String countSql = "SELECT COUNT(*) FROM table_name"; // 获取表中记录总数的 SQL 语句
+            String countSql = "SELECT COUNT(*) FROM student"; // 获取表中记录总数的 SQL 语句
             String deleteSql = "DELETE FROM student WHERE \"S#\" = ?"; // 删除记录的 SQL 语句
             Statement countStmt = conn.createStatement();
             ResultSet countRs = countStmt.executeQuery(countSql);
             countRs.next();
             int count = countRs.getInt(1); // 获取表中记录总数
-            if (count > 0) {
+            if(count > 0){
+//                Random random = new Random();
+//                //int index = random.nextInt()+1;
+//                int index = 3;
                 Random random = new Random();
-                int index = random.nextInt(count) + 1; // 随机选择一个记录的下标（从1开始）
+                int index = random.nextInt(students.size()); // 随机选择一个学生的下标
+                Student s = students.get(index); // 获取随机选择的学生
+                long sId = s.getId(); // 获取该学生的"S#"值
+                System.out.println("The delete student is "+students.remove(index));
                 PreparedStatement deleteStmt = conn.prepareStatement(deleteSql);
-                deleteStmt.setInt(1, index);
-                int rows = deleteStmt.executeUpdate(); // 执行删除操作
-                if (rows > 0) {
-                    System.out.println("Deleted successfully.");
-                } else {
-                    System.out.println("No record found with index=" + index);
+                deleteStmt.setLong(1, sId);
+                int rows = deleteStmt.executeUpdate();
+                if(rows >0){
+                    System.out.println("Delete successfully.");
+
+                }else{
+                    System.out.println("No record found with index="+ index);
                 }
-            } else {
-                System.out.println("No record found.");
+            }else{
+                System.out.println("No record found");
             }
-        } catch (SQLException e) {
+            for(Student student:students){
+                System.out.println(student);
+            }
+        }catch (SQLException e){
             e.printStackTrace();
         }
 
     }
     private static void deleteCourseData(List<Course> courses) {
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+            String countSql = "SELECT COUNT(*) FROM course"; // 获取表中记录总数的 SQL 语句
+            String deleteSql = "DELETE FROM course WHERE \"C#\" = ?"; // 删除记录的 SQL 语句
+            Statement countStmt = conn.createStatement();
+            ResultSet countRs = countStmt.executeQuery(countSql);
+            countRs.next();
+            int count = countRs.getInt(1); // 获取表中记录总数
+            if(count > 0){
+//                Random random = new Random();
+//                //int index = random.nextInt()+1;
+//                int index = 3;
+                Random random = new Random();
+                int index = random.nextInt(courses.size()); // 随机选择一个学生的下标
+                Course c = courses.get(index); // 获取随机选择的学生
+                String cId = c.getId(); // 获取该学生的"S#"值
+                System.out.println("The delete student is "+courses.remove(index));
+                PreparedStatement deleteStmt = conn.prepareStatement(deleteSql);
+                deleteStmt.setString(1, cId);
+                int rows = deleteStmt.executeUpdate();
+                if(rows >0){
+                    System.out.println("Delete successfully.");
 
+                }else{
+                    System.out.println("No record found with index="+ index);
+                }
+            }else{
+                System.out.println("No record found");
+            }
+            for(Course course:courses){
+                System.out.println(course);
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
     }
 
 }

@@ -34,4 +34,8 @@ public class Course {
         return teacher;
     }
 
+    @Override
+    public String toString(){
+        return "The course name is "+this.getName();
+    }
 }
