@@ -9,7 +9,7 @@ public class ConcurrentTransactionsDemo {
     public static insertExcelData operateExcel;
 
     public static void main(String[] args) throws SQLException {
-        int numThreads = 5;
+        int numThreads = 3;
         String url = "jdbc:postgresql://192.168.1.112:5432/jdbc_db";
         String user = "xzw";
         String password = "Xzw@010816";
@@ -22,6 +22,7 @@ public class ConcurrentTransactionsDemo {
         ds.setPassword(password);
 
         // 创建多个线程执行事务
+        try {
         Thread[] threads = new Thread[numThreads];
         for (int i = 0; i < numThreads; i++) {
             threads[i] = new Thread(new TransactionTask(ds));
@@ -36,5 +37,14 @@ public class ConcurrentTransactionsDemo {
                 e.printStackTrace();
             }
         }
+        try {
+            if (insertExcelData.conn != null) insertExcelData.conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }catch (RuntimeException e) {
+            System.out.println("Caught RuntimeException: " + e.getMessage());
+        }
+
     }
 }

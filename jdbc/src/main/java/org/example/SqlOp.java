@@ -41,13 +41,6 @@ public class SqlOp {
             e.printStackTrace();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } finally {
-            // 关闭数据库连接
-            try {
-                if (insertExcelData.conn != null) insertExcelData.conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
     //阅后既焚   e.g. shapshot
@@ -76,13 +69,6 @@ public class SqlOp {
             e.printStackTrace();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } finally {
-            // 关闭数据库连接
-            try {
-                if (insertExcelData.conn != null) insertExcelData.conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
 
     }
@@ -111,14 +97,8 @@ public class SqlOp {
             e.printStackTrace();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } finally {
-            // 关闭数据库连接
-            try {
-                if (insertExcelData.conn != null) insertExcelData.conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
+
 
     }
     //对及时性要求非常高的场景
@@ -147,13 +127,6 @@ public class SqlOp {
             e.printStackTrace();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } finally {
-            // 关闭数据库连接
-            try {
-                if (insertExcelData.conn != null) insertExcelData.conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
 
     }
@@ -172,6 +145,11 @@ public class SqlOp {
 
             insertExcelData.conn.commit();
             System.out.println("Transaction completed successfully.");
+            try {
+                if (insertExcelData.conn != null) insertExcelData.conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             sleep(100);
         } catch (SQLException e) {
             try {
@@ -183,13 +161,6 @@ public class SqlOp {
             e.printStackTrace();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
-        } finally {
-            // 关闭数据库连接
-            try {
-                if (insertExcelData.conn != null) insertExcelData.conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
 
     }

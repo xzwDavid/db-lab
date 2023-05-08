@@ -15,27 +15,38 @@ class TransactionTask implements Runnable {
 
     @Override
     public void run() {
-        try {
-            Random random = new Random();
-            int index =random.nextInt(4);
-            switch (index){
-                case 1 : sqlOp.InsertAndDelete();break;
-                case 2 : sqlOp.InsertAndRead();break;
-                case 3 : sqlOp.InsertAndUpdate();break;
-                case 4 : sqlOp.UpdateAndRead();break;
-                default: sqlOp.ReadAndDelete();break;
-            }
-            sleep(1000);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } finally {
-            // 关闭数据库连接
+        int count = 0;
+        for(int i=0;i<100;i++){
             try {
-                if (insertExcelData.conn != null) insertExcelData.conn.close();
+                Random random = new Random();
+                //int index =random.nextInt(1);
+                int index = 1;
+
+                switch (index){
+                    case 1 :
+                        sqlOp.InsertAndDelete();
+                        break;
+                    case 2 :
+                        count++;
+                        //System.out.println(count);
+                        sqlOp.InsertAndRead();
+                        break;
+                    case 3 :
+                        count++;
+                        sqlOp.InsertAndUpdate();
+                        break;
+                    case 4 :
+                        sqlOp.UpdateAndRead();
+                        break;
+                    default:
+                        if(count==0)
+                            break;
+                        count--;
+                        sqlOp.ReadAndDelete();
+                        break;
+                }
             } catch (SQLException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         }
     }

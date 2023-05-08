@@ -110,7 +110,10 @@ public class insertExcelData {
             PreparedStatement stmt = conn.prepareStatement(sql);
             Random random = new Random(); // 创建随机数生成器对象
             int size = students.size(); // 获取学生对象列表的长度
-            int index = random.nextInt(size); // 随机选择一个下标
+            int index = 0;
+            if(size != 0) {
+                index = random.nextInt(size); // 随机选择一个下标
+            }
             Student student = students.get(index); // 获取选中的学生对象
             String querySql = "SELECT 1 FROM student WHERE \"S#\" = ?";
             PreparedStatement queryStmt = conn.prepareStatement(querySql);
