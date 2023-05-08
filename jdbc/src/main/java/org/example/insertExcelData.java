@@ -20,25 +20,27 @@ public class insertExcelData {
     public static List<Student> students;
     public static List<Course> courses;
 
-    public static void main(String[] args) {
+    public static Connection conn = null;
+
+    public static void readData() throws SQLException {
         String studentFile = "/Users/xuzhongwei/Downloads/students-20.xlsx";
         String courseFile = "/Users/xuzhongwei/Downloads/courses-20.xlsx";
-
+        try{conn = DriverManager.getConnection(URL, USER, PASSWORD);}catch(SQLException e){e.printStackTrace();}
         // 读取学生信息
-        //students = readStudentData(studentFile);
+        students = readStudentData(studentFile);
 
         // 插入学生信息到数据库
         //insertStudentData();
-        //fixStudent();
+//        fixStudent();
         //updateStudenData();
 
         //deleteStudentData(students);
         // 读取课程信息
         //fixCourse();
         courses = readCourseData(courseFile);
-        fixCourse();
+  //      fixCourse();
         //updateCourseData();
-        selectCourseData();
+        //selectCourseData();
         //selectStudentData();
         // 插入课程信息到数据库
 //        insertCourseData(courses);
@@ -103,14 +105,14 @@ public class insertExcelData {
     }
 
     public static void insertStudentData() {
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        try  {
             String sql = "INSERT INTO student (\"S#\", sname, sex, bdate, height, dorm) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
             Random random = new Random(); // 创建随机数生成器对象
             int size = students.size(); // 获取学生对象列表的长度
             int index = random.nextInt(size); // 随机选择一个下标
             Student student = students.get(index); // 获取选中的学生对象
-            String querySql = "SELECT 1 FROM course WHERE \"C#\" = ?";
+            String querySql = "SELECT 1 FROM student WHERE \"S#\" = ?";
             PreparedStatement queryStmt = conn.prepareStatement(querySql);
             queryStmt.setLong(1, student.getId());
             ResultSet rs = queryStmt.executeQuery();
@@ -135,7 +137,7 @@ public class insertExcelData {
 
     public static void insertCourseData() {
 
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        try {
             String sql = "INSERT INTO course (\"C#\", cname, period, credit, teacher) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
             Random random = new Random(); // 创建随机数生成器对象
@@ -163,7 +165,7 @@ public class insertExcelData {
     }
 
     public static void deleteStudentData(){
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        try  {
             String countSql = "SELECT COUNT(*) FROM student"; // 获取表中记录总数的 SQL 语句
             String deleteSql = "DELETE FROM student WHERE \"S#\" = ?"; // 删除记录的 SQL 语句
             Statement countStmt = conn.createStatement();
@@ -191,16 +193,14 @@ public class insertExcelData {
             }else{
                 System.out.println("No record found");
             }
-            for(Student student:students){
-                System.out.println(student);
-            }
+
         }catch (SQLException e){
             e.printStackTrace();
         }
 
     }
     public static void deleteCourseData() {
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        try {
             String countSql = "SELECT COUNT(*) FROM course"; // 获取表中记录总数的 SQL 语句
             String deleteSql = "DELETE FROM course WHERE \"C#\" = ?"; // 删除记录的 SQL 语句
             Statement countStmt = conn.createStatement();
@@ -228,16 +228,13 @@ public class insertExcelData {
             }else{
                 System.out.println("No record found");
             }
-            for(Course course:courses){
-                System.out.println(course);
-            }
         }catch (SQLException e){
             e.printStackTrace();
         }
     }
 
     public static void updateStudenData(){
-        try(Connection conn = DriverManager.getConnection(URL,USER,PASSWORD)){
+        try{
             Random random = new Random();
             int index = random.nextInt(students.size());
             Student student = students.get(index);
@@ -267,7 +264,7 @@ public class insertExcelData {
     }
 
     public static void updateCourseData(){
-        try(Connection conn = DriverManager.getConnection(URL,USER,PASSWORD)){
+        try{
             Random random = new Random();
             int index = random.nextInt(courses.size());
             Course course = courses.get(index);
@@ -295,7 +292,7 @@ public class insertExcelData {
     }
 
     public static void selectStudentData(){
-        try(Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)){
+        try{
             Random random = new Random();
             int index = random.nextInt(students.size());
             Student student = students.get(index);
@@ -321,7 +318,7 @@ public class insertExcelData {
     }
 
     public static void selectCourseData(){
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        try {
             Random random = new Random();
             int index = random.nextInt(courses.size());
             Course course = courses.get(index);
@@ -346,7 +343,7 @@ public class insertExcelData {
     }
 
     public static void fixCourse(){
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        try {
             String sql = "INSERT INTO course (\"C#\", cname, period, credit, teacher) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
             for (Course course : courses) {
@@ -369,7 +366,7 @@ public class insertExcelData {
         }
     }
     private static void fixStudent(){
-        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
+        try {
             String sql = "INSERT INTO student (\"S#\", sname, sex, bdate, height, dorm) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
             for (Student student : students) {

@@ -2,16 +2,18 @@ package org.example;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 
+import java.sql.SQLException;
+
 public class ConcurrentTransactionsDemo {
 
     public static insertExcelData operateExcel;
 
-    public static void main(String[] args) {
-        int numThreads = 10;
+    public static void main(String[] args) throws SQLException {
+        int numThreads = 5;
         String url = "jdbc:postgresql://192.168.1.112:5432/jdbc_db";
         String user = "xzw";
         String password = "Xzw@010816";
-        //sinsertExcelData.readData();
+        insertExcelData.readData();
         // 创建数据库连接池
         BasicDataSource ds = new BasicDataSource();
         ds.setDriverClassName("org.postgresql.Driver");

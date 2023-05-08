@@ -15,34 +15,26 @@ public class SqlOp {
     public SqlOp(BasicDataSource ds) {
         this.ds = ds;
     }
-
+    //插入既读  e.g. 大部分注册功能读APP
     public void InsertAndRead(){
-        Connection conn = null;
-        PreparedStatement stmt1 = null;
-        PreparedStatement stmt2 = null;
+        System.out.println("InsertAndRead");
         try {
             // 获取数据库连接
-            conn = ds.getConnection();
-            conn.setAutoCommit(false);
-
-            // 执行第一个SQL语句
-            String sql1 = "UPDATE accounts SET balance = balance + 100 WHERE id = 1";
-            stmt1 = conn.prepareStatement(sql1);
-            stmt1.executeUpdate();
-
-            // 执行第二个SQL语句
-            String sql2 = "UPDATE accounts SET balance = balance - 100 WHERE id = 2";
-            stmt2 = conn.prepareStatement(sql2);
-            stmt2.executeUpdate();
-
+            insertExcelData.conn = ds.getConnection();
+            insertExcelData.conn.setAutoCommit(false);
             // 提交事务
-            conn.commit();
+
+            insertExcelData.insertCourseData();
+            insertExcelData.selectCourseData();
+
+
+            insertExcelData.conn.commit();
             System.out.println("Transaction completed successfully.");
             sleep(100);
         } catch (SQLException e) {
             try {
                 // 回滚事务
-                conn.rollback();
+                insertExcelData.conn.rollback();
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
@@ -52,24 +44,153 @@ public class SqlOp {
         } finally {
             // 关闭数据库连接
             try {
-                if (stmt1 != null) stmt1.close();
-                if (stmt2 != null) stmt2.close();
-                if (conn != null) conn.close();
+                if (insertExcelData.conn != null) insertExcelData.conn.close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
     }
-    public void ReadAndDelete(){
+    //阅后既焚   e.g. shapshot
+    public void ReadAndDelete() throws SQLException {
+        System.out.println("InsertAndDelete");
+        try {
+            // 获取数据库连接
+            insertExcelData.conn = ds.getConnection();
+            insertExcelData.conn.setAutoCommit(false);
+            // 提交事务
+
+            insertExcelData.selectStudentData();
+            insertExcelData.insertStudentData();
+
+
+            insertExcelData.conn.commit();
+            System.out.println("Transaction completed successfully.");
+            sleep(100);
+        } catch (SQLException e) {
+            try {
+                // 回滚事务
+                insertExcelData.conn.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 关闭数据库连接
+            try {
+                if (insertExcelData.conn != null) insertExcelData.conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
+    //插入即更。    一些需要加密的场景
     public void InsertAndUpdate(){
+        System.out.println("InsertAndUpdate");
+        try {
+            // 获取数据库连接
+            insertExcelData.conn = ds.getConnection();
+            insertExcelData.conn.setAutoCommit(false);
+            // 提交事务
+
+            insertExcelData.insertStudentData();
+            insertExcelData.updateStudenData();
+
+            insertExcelData.conn.commit();
+            System.out.println("Transaction completed successfully.");
+            sleep(100);
+        } catch (SQLException e) {
+            try {
+                // 回滚事务
+                insertExcelData.conn.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 关闭数据库连接
+            try {
+                if (insertExcelData.conn != null) insertExcelData.conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
+    //对及时性要求非常高的场景
     public void UpdateAndRead(){
+        System.out.println("UpdateAndRead");
+        try {
+            // 获取数据库连接
+            insertExcelData.conn = ds.getConnection();
+            insertExcelData.conn.setAutoCommit(false);
+            // 提交事务
+
+            insertExcelData.updateStudenData();
+            insertExcelData.selectStudentData();
+
+
+            insertExcelData.conn.commit();
+            System.out.println("Transaction completed successfully.");
+            sleep(100);
+        } catch (SQLException e) {
+            try {
+                // 回滚事务
+                insertExcelData.conn.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 关闭数据库连接
+            try {
+                if (insertExcelData.conn != null) insertExcelData.conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
+    //数据库科研且没钱的场景 55555555～～～～
     public void InsertAndDelete(){
+        System.out.println("InsertAndDelete");
+        try {
+            // 获取数据库连接
+            insertExcelData.conn = ds.getConnection();
+            insertExcelData.conn.setAutoCommit(false);
+            // 提交事务
+
+            insertExcelData.insertStudentData();
+            insertExcelData.deleteStudentData();
+
+
+            insertExcelData.conn.commit();
+            System.out.println("Transaction completed successfully.");
+            sleep(100);
+        } catch (SQLException e) {
+            try {
+                // 回滚事务
+                insertExcelData.conn.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            // 关闭数据库连接
+            try {
+                if (insertExcelData.conn != null) insertExcelData.conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 }
