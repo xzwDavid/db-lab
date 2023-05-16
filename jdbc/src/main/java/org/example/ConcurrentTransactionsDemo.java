@@ -7,21 +7,25 @@ import java.sql.SQLException;
 public class ConcurrentTransactionsDemo {
 
     public static insertExcelData operateExcel;
-
+    public static  String password;
+    public static String user;
+    public static BasicDataSource ds;
+    public static String url;
     public static void main(String[] args) throws SQLException {
-        int numThreads = 3;
-        String url = "jdbc:postgresql://192.168.1.112:5432/jdbc_db";
-        String user = "xzw";
-        String password = "Xzw@010816";
-        insertExcelData.readData();
+        int numThreads = 5;
+        url = "jdbc:postgresql://192.168.1.112:5432/jdbc_db";
+        user = "xzw";
+        password = "Xzw@010816";
+
         // 创建数据库连接池
-        BasicDataSource ds = new BasicDataSource();
+        ds = new BasicDataSource();
         ds.setDriverClassName("org.postgresql.Driver");
         ds.setUrl(url);
         ds.setUsername(user);
         ds.setPassword(password);
-
-        // 创建多个线程执行事务
+        insertExcelData.readData();
+         //创建多个线程执行事务
+        insertExcelData.conn = ds.getConnection();
         try {
         Thread[] threads = new Thread[numThreads];
         for (int i = 0; i < numThreads; i++) {

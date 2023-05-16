@@ -12,6 +12,7 @@ public class SqlOp {
 
     private final BasicDataSource ds;
 
+    private int delandins = 0;
     public SqlOp(BasicDataSource ds) {
         this.ds = ds;
     }
@@ -20,7 +21,6 @@ public class SqlOp {
         System.out.println("InsertAndRead");
         try {
             // 获取数据库连接
-            insertExcelData.conn = ds.getConnection();
             insertExcelData.conn.setAutoCommit(false);
             // 提交事务
 
@@ -48,7 +48,7 @@ public class SqlOp {
         System.out.println("InsertAndDelete");
         try {
             // 获取数据库连接
-            insertExcelData.conn = ds.getConnection();
+
             insertExcelData.conn.setAutoCommit(false);
             // 提交事务
 
@@ -77,7 +77,6 @@ public class SqlOp {
         System.out.println("InsertAndUpdate");
         try {
             // 获取数据库连接
-            insertExcelData.conn = ds.getConnection();
             insertExcelData.conn.setAutoCommit(false);
             // 提交事务
 
@@ -106,7 +105,6 @@ public class SqlOp {
         System.out.println("UpdateAndRead");
         try {
             // 获取数据库连接
-            insertExcelData.conn = ds.getConnection();
             insertExcelData.conn.setAutoCommit(false);
             // 提交事务
 
@@ -131,25 +129,19 @@ public class SqlOp {
 
     }
     //数据库科研且没钱的场景 55555555～～～～
-    public void InsertAndDelete(){
-        System.out.println("InsertAndDelete");
+    public void InsertAndDeleteCou(){
+        //System.out.println("InsertAndDelete"+delandins);
         try {
             // 获取数据库连接
-            insertExcelData.conn = ds.getConnection();
             insertExcelData.conn.setAutoCommit(false);
             // 提交事务
 
-            insertExcelData.insertStudentData();
+            insertExcelData.insertCourseDelatedData();
             insertExcelData.deleteStudentData();
 
 
             insertExcelData.conn.commit();
             System.out.println("Transaction completed successfully.");
-            try {
-                if (insertExcelData.conn != null) insertExcelData.conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
             sleep(100);
         } catch (SQLException e) {
             try {
@@ -159,6 +151,52 @@ public class SqlOp {
                 ex.printStackTrace();
             }
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+    public void InsertAndDeleteSC(){
+        //System.out.println("InsertAndDelete"+delandins);
+        try {
+            // 获取数据库连接
+            insertExcelData.conn.setAutoCommit(false);
+            // 提交事务
+
+            insertExcelData.insertSCDelatedData();
+            insertExcelData.deleteSCData();
+
+
+            insertExcelData.conn.commit();
+            System.out.println("Transaction completed successfully.");
+            sleep(100);
+        } catch (SQLException e) {
+            try {
+                // 回滚事务
+                insertExcelData.conn.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+    public void InsertAndDeleteStu(Connection connection){
+        //System.out.println("InsertAndDelete"+delandins);
+        try {
+            // 获取数据库连接
+
+            // 提交事务
+
+            insertExcelData.insertStudentDelatedData(connection);
+            //insertExcelData.deleteStudentData();
+
+            //insertExcelData.insertStudentData();
+
+            System.out.println("Transaction completed successfully.");
+            sleep(100);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

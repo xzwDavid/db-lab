@@ -1,10 +1,13 @@
 package org.example;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+
+import javax.activation.DataSource;
 import java.sql.*;
 import java.util.Random;
 
 import static java.lang.Thread.sleep;
+import static org.example.ConcurrentTransactionsDemo.ds;
 
 class TransactionTask implements Runnable {
     public SqlOp sqlOp;
@@ -16,38 +19,58 @@ class TransactionTask implements Runnable {
     @Override
     public void run() {
         int count = 0;
-        for(int i=0;i<100;i++){
-            try {
+        String url = "jdbc:postgresql://192.168.1.112:5432/jdbc_db";
+        String user = "xzw";
+        String password = "Xzw@010816";
+        BasicDataSource ds = new BasicDataSource();
+        ds.setDriverClassName("org.postgresql.Driver");
+        ds.setUrl(url);
+        ds.setUsername(user);
+        ds.setPassword(password);
+        Connection conn = null;
+        try {
+            conn = ds.getConnection();
+            for (int i = 0; i < 100; i++) {
                 Random random = new Random();
-                //int index =random.nextInt(1);
+                //int index = random.nextInt(20);
                 int index = 1;
 
-                switch (index){
-                    case 1 :
-                        sqlOp.InsertAndDelete();
-                        break;
-                    case 2 :
-                        count++;
-                        //System.out.println(count);
-                        sqlOp.InsertAndRead();
-                        break;
-                    case 3 :
-                        count++;
-                        sqlOp.InsertAndUpdate();
-                        break;
-                    case 4 :
-                        sqlOp.UpdateAndRead();
+                switch (index) {
+                    case 1:
+                        sqlOp.InsertAndDeleteStu(conn);
                         break;
                     default:
-                        if(count==0)
-                            break;
-                        count--;
-                        sqlOp.ReadAndDelete();
+                        //sqlOp.InsertAndRead();
+                        insertExcelData.insertStudentData();
                         break;
                 }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+//            switch (index) {
+//                case 1:
+//                    sqlOp.InsertAndDeleteCou();
+//                    break;
+//                default:
+//                    //sqlOp.InsertAndRead();
+//                    insertExcelData.insertCourseData();
+//                    break;
+//            }
+//            switch (index) {
+//                case 1:
+//                    sqlOp.InsertAndDeleteSC();
+//                    break;
+//                default:
+//                    //sqlOp.InsertAndRead();
+//                    insertExcelData.insertSCData();
+//                    break;
+//            }
             }
+            try {
+                if (insertExcelData.conn != null) insertExcelData.conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
+
     }
 }
