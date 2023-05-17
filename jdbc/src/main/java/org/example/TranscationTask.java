@@ -7,7 +7,7 @@ import java.sql.*;
 import java.util.Random;
 
 import static java.lang.Thread.sleep;
-import static org.example.ConcurrentTransactionsDemo.ds;
+import static org.example.ConcurrentTransactionsDemo.*;
 
 class TransactionTask implements Runnable {
     public SqlOp sqlOp;
@@ -19,9 +19,9 @@ class TransactionTask implements Runnable {
     @Override
     public void run() {
         int count = 0;
-        String url = "jdbc:postgresql://192.168.1.112:5432/jdbc_db";
-        String user = "xzw";
-        String password = "Xzw@010816";
+//        String url = "jdbc:postgresql://192.168.1.112:5432/mydb";
+//        String user = "xzw";
+//        String password = "Xzw@010816";
         BasicDataSource ds = new BasicDataSource();
         ds.setDriverClassName("org.postgresql.Driver");
         ds.setUrl(url);
@@ -30,9 +30,9 @@ class TransactionTask implements Runnable {
         Connection conn = null;
         try {
             conn = ds.getConnection();
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 2; i++) {
                 Random random = new Random();
-                //int index = random.nextInt(20);
+//                int index = random.nextInt(20);
                 int index = 1;
 
                 switch (index) {
@@ -41,27 +41,28 @@ class TransactionTask implements Runnable {
                         break;
                     default:
                         //sqlOp.InsertAndRead();
-                        insertExcelData.insertStudentData();
+                        insertExcelData.insertStudentData(conn);
                         break;
                 }
-//            switch (index) {
-//                case 1:
-//                    sqlOp.InsertAndDeleteCou();
-//                    break;
-//                default:
-//                    //sqlOp.InsertAndRead();
-//                    insertExcelData.insertCourseData();
-//                    break;
-//            }
-//            switch (index) {
-//                case 1:
-//                    sqlOp.InsertAndDeleteSC();
-//                    break;
-//                default:
-//                    //sqlOp.InsertAndRead();
-//                    insertExcelData.insertSCData();
-//                    break;
-//            }
+            switch (index) {
+                case 1:
+                    sqlOp.InsertAndDeleteCou(conn);
+                    break;
+                default:
+                    //sqlOp.InsertAndRead();
+                    insertExcelData.insertCourseData(conn);
+                    break;
+            }
+            switch (index) {
+                case 1:
+                    sqlOp.InsertAndDeleteSC(conn);
+                    break;
+                default:
+                    //sqlOp.InsertAndRead();
+                    insertExcelData.insertSCData(conn);
+                    break;
+            }
+
             }
             try {
                 if (insertExcelData.conn != null) insertExcelData.conn.close();

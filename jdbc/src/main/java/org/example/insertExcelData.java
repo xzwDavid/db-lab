@@ -2,13 +2,9 @@ package org.example;
 
 import java.io.FileInputStream;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.apache.pdfbox.io.ScratchFile;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -20,12 +16,12 @@ import static org.example.ConcurrentTransactionsDemo.*;
 
 public class insertExcelData {
 
-    private static final String URL = "jdbc:postgresql://192.168.1.112:5432/jdbc_db";
+    private static final String URL = "jdbc:postgresql://192.168.1.112:5432/mydb";
     private static final String USER = "xzw";
     private static final String PASSWORD = "Xzw@010816";
     public static List<Student> students;
     public static List<Course> courses;
-
+    private static Object lock = new Object();
     public static List<SC> SCs;
 
     public static ConcurrentLinkedQueue<Student> Students;
@@ -33,16 +29,19 @@ public class insertExcelData {
     public static ConcurrentLinkedQueue<SC> Scs;
     public static Connection conn = null;
 
+    public static HashMap<String , Integer> StuHash = new HashMap<>();
+    public static HashMap<String , Integer> CouHash = new HashMap<>();
+    public static HashMap<String , Integer> SCHash = new HashMap<>();
     public static void readData() throws SQLException {
-        String studentFile = "/Users/xuzhongwei/Downloads/students-20.xlsx";
-        String courseFile = "/Users/xuzhongwei/Downloads/courses-20.xlsx";
-        String scFile = "/Users/xuzhongwei/Downloads/选课信息.xlsx";
+//        String studentFile = "/Users/xuzhongwei/Downloads/students-20.xlsx";
+//        String courseFile = "/Users/xuzhongwei/Downloads/courses-20.xlsx";
+//        String scFile = "/Users/xuzhongwei/Downloads/选课信息.xlsx";
         try{conn = DriverManager.getConnection(URL, USER, PASSWORD);}catch(SQLException e){e.printStackTrace();}
         // 读取学生信息
         students = readStudentData(studentFile);
         SCs = readSCData(scFile);
         courses = readCourseData(courseFile);
-        insertStudentData();
+        //insertStudentData(conn);
         // 插入学生信息到数据库
         //insertStudentData();
         //fixStudent();
@@ -153,9 +152,9 @@ public class insertExcelData {
         return SCs;
     }
 
-    public static void insertStudentData() {
+    public static void insertStudentData(Connection conn) {
         try  {
-            String sql = "INSERT INTO student (\"S#\", sname, sex, bdate, height, dorm) VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO s211 (\"S#\", sname, sex, bdate, height, dorm) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
 //            Random random = new Random(); // 创建随机数生成器对象
 //            int size = students.size(); // 获取学生对象列表的长度
@@ -164,10 +163,11 @@ public class insertExcelData {
 //                index = random.nextInt(size); // 随机选择一个下标
 //            }
             Student student = Students.poll(); // 获取选中的学生对象
+
             System.out.println("size: "+Students.size());
             if(student == null)
                 return;
-            String querySql = "SELECT 1 FROM student WHERE \"S#\" = ?";
+            String querySql = "SELECT 1 FROM s211 WHERE \"S#\" = ?";
             PreparedStatement queryStmt = conn.prepareStatement(querySql);
             queryStmt.setLong(1, student.getId());
             ResultSet rs = queryStmt.executeQuery();
@@ -189,10 +189,10 @@ public class insertExcelData {
 
     }
 
-    public static void insertCourseData() {
+    public static void insertCourseData(Connection conn) {
 
         try {
-            String sql = "INSERT INTO course (\"C#\", cname, period, credit, teacher) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO c211 (\"C#\", cname, period, credit, teacher) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
 //            Random random = new Random(); // 创建随机数生成器对象
 //            int size = courses.size(); // 获取课程对象列表的长度
@@ -200,7 +200,15 @@ public class insertExcelData {
             Course course = Courses.poll(); // 获取选中的课程对象
             if(course == null)
                 return;
-            String querySql = "SELECT 1 FROM course WHERE \"C#\" = ?";
+            synchronized (lock) {
+                if (CouHash.containsKey(course.getId())) {
+                    return;
+                    //CouHash.put(key, value + 1);
+                } else {
+                    CouHash.put(course.getId(), 1);
+                }
+            }
+            String querySql = "SELECT 1 FROM c211 WHERE \"C#\" = ?";
             PreparedStatement queryStmt = conn.prepareStatement(querySql);
             queryStmt.setString(1, course.getId());
             ResultSet rs = queryStmt.executeQuery();
@@ -210,9 +218,9 @@ public class insertExcelData {
                 stmt.setInt(3, course.getPeriod());
                 stmt.setDouble(4, course.getCredit());
                 stmt.setString(5, course.getTeacher());
-                stmt.executeUpdate();
+                stmt.execute();
 //                courses.remove(index); // 删除已选中的课程对象
-                System.out.println("Inserted course data successfully.");
+                System.out.println("Inserted c211 data successfully.");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -220,9 +228,9 @@ public class insertExcelData {
 
     }
 
-    public static void insertSCData() {
+    public static void insertSCData(Connection conn) {
         try  {
-            String sql = "INSERT INTO sc (\"S#\", \"C#\", grade) VALUES (?, ?, ?)";
+            String sql = "INSERT INTO sc211 (\"S#\", \"C#\", grade) VALUES (?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
 //            Random random = new Random(); // 创建随机数生成器对象
 //            int size = SCs.size(); // 获取学生对象列表的长度
@@ -230,15 +238,26 @@ public class insertExcelData {
             SC sc = Scs.poll(); // 获取选中的学生对象
             if(sc == null)
                 return;
-            String querySql = "SELECT 1 FROM sc WHERE \"S#\" = ?";
+            String querySql = "SELECT 1 FROM sc211 WHERE \"S#\" = ?";
+            String querySSql = "SELECT 1 FROM s211 WHERE \"S#\" = ?";
+            String queryCSql = "SELECT 1 FROM c211 WHERE \"C#\" = ?";
             PreparedStatement queryStmt = conn.prepareStatement(querySql);
+            PreparedStatement querySStmt = conn.prepareStatement(querySSql);
+            PreparedStatement queryCStmt = conn.prepareStatement(queryCSql);
             queryStmt.setLong(1, sc.getSid());
+            querySStmt.setLong(1, sc.getSid());
+            queryCStmt.setString(1, sc.getCid());
+            ResultSet rs2 =  querySStmt.executeQuery();
+            ResultSet rs3 = queryCStmt.executeQuery();
+            if(!(rs2.next() && rs3.next()))
+                return;
             ResultSet rs = queryStmt.executeQuery();
-            if (!rs.next()) {
+
+            if (!rs.next() ) {
                 stmt.setLong(1, sc.getSid());
                 stmt.setString(2, sc.getCid());
                 stmt.setInt(3, sc.getGrade());
-                stmt.executeUpdate();
+                stmt.execute();
                 //students.remove(index); // 删除已选中的学生对象
                 System.out.println("Inserted sc data successfully.");
             }
@@ -249,14 +268,14 @@ public class insertExcelData {
 
 
     }
-    public static void deleteStudentData(){
+    public static void deleteStudentData(Connection conn){
         try  {
             //String countSql = "SELECT COUNT(*) FROM student"; // 获取表中记录总数的 SQL 语句
-            String deleteSql = "DELETE FROM student WHERE \"S#\" = '666'"; // 删除记录的 SQL 语句
-            String deleteExtra = "DELETE FROM sc WHERE \"S#\" = '666'";
+            String deleteSql = "DELETE FROM s211 WHERE \"S#\" = '666'"; // 删除记录的 SQL 语句
+            String deleteExtra = "DELETE FROM sc211 WHERE \"S#\" = '666'";
             Statement countStmt = conn.createStatement();
-            countStmt.executeUpdate(deleteExtra);
-            countStmt.executeUpdate(deleteSql);
+            countStmt.execute(deleteExtra);
+            countStmt.execute(deleteSql);
 
 //            ResultSet countRs = countStmt.executeQuery(countSql);
 //            countRs.next();
@@ -288,11 +307,17 @@ public class insertExcelData {
         }
 
     }
-    public static void insertCourseDelatedData(){
+    public static void insertCourseDelatedData(Connection connection){
         try{
-            String insertSql = "INSERT INTO course (\"C#\", cname, period, credit, teacher) VALUES ('xzw','xzw',100,100,'xzw')";
-            Statement insertState = conn.createStatement();
-            insertState.execute(insertSql);
+            connection.setAutoCommit(false);
+            String insertSql = "INSERT INTO c211 (\"C#\", cname, period, credit, teacher) VALUES ('xzw','xzw',100,100,'xzw')";
+            String deleteSql = "DELETE FROM c211 WHERE \"C#\"='xzw'";
+            String deleteExtra = "DELETE FROM sc211 WHERE \"C#\" = 'xzw'";
+            Statement insertState = connection.createStatement();
+            insertState.executeUpdate(insertSql);
+            insertState.executeUpdate(deleteExtra);
+            insertState.executeUpdate(deleteSql);
+            connection.commit();
         }catch(SQLException e){
             e.printStackTrace();
         }
@@ -304,11 +329,11 @@ public class insertExcelData {
             connection.setAutoCommit(false);
             //String insertSql = "INSERT INTO student (\"S#\", sname, s ex, bdate, height, dorm) VALUES (6666666666, \"xzw\", \"男\", \'2023-05-12\', 1.72, \"南洋511s\")";
             //String insertSql = "INSERT INTO student (\"S#\", sname, sex, bdate, height, dorm) VALUES (6666666666, \"徐中伟\", \"男\", '2023-05-12', 1.72, \"南洋511s\")";
-            String insertSql = "INSERT INTO student (\"S#\", sname, sex, bdate, height, dorm) VALUES (666, 'xzw', '男', '2023-05-12', 1.72, '南洋511s')";
+            String insertSql = "INSERT INTO s211 (\"S#\", sname, sex, bdate, height, dorm) VALUES (666, 'xzw', '男', '2023-05-12', 1.72, '南洋511s')";
             Statement Stmt = connection.createStatement();
             Stmt.executeUpdate(insertSql);
-            String deleteSql = "DELETE FROM student WHERE \"S#\" = '666'"; // 删除记录的 SQL 语句
-            String deleteExtra = "DELETE FROM sc WHERE \"S#\" = '666'";
+            String deleteSql = "DELETE FROM s211 WHERE \"S#\" = '666'"; // 删除记录的 SQL 语句
+            String deleteExtra = "DELETE FROM sc211 WHERE \"S#\" = '666'";
             Stmt.executeUpdate(deleteExtra);
             Stmt.executeUpdate(deleteSql);
             connection.commit();
@@ -317,11 +342,23 @@ public class insertExcelData {
         }
     }
 
-    public static void insertSCDelatedData(){
+    public static void insertSCDelatedData(Connection conn){
         try{
-            String insertSql = "INSERT INTO sc (\"S#\", \"C#\", grade) VALUES (6666666666, 'xzw',100)";
+            //String querySql = "SELECT 1 FROM sc211 WHERE \"S#\"  = ?";
+            String querySSql = "SELECT 1 FROM s211 WHERE \"S#\" = 6666";
+            String queryCSql = "SELECT 1 FROM c211 WHERE \"C#\" = 'xzw'";
             Statement insertState = conn.createStatement();
-            insertState.execute(insertSql);
+            ResultSet rs3 = insertState.executeQuery(queryCSql);
+            ResultSet rs2 = insertState.executeQuery(querySSql);
+            if(!rs2.next() || !rs3.next())
+                return;
+            conn.setAutoCommit(false);
+            String insertSql = "INSERT INTO sc211 (\"S#\", \"C#\", grade) VALUES (6666, 'xzw',100)";
+            String deleteSql = "DELETE FROM sc211 WHERE \"C#\"=\'xzw\'";
+            insertState = conn.createStatement();
+            insertState.executeUpdate(insertSql);
+            insertState.executeUpdate(deleteSql);
+            conn.commit();
         }catch(SQLException e){
             e.printStackTrace();
         }
@@ -359,8 +396,8 @@ public class insertExcelData {
 //            e.printStackTrace();
 //        }
         try {
-            String deleteSql = "DELETE FROM course WHERE \"C#\" = '%21'"; // 删除记录的 SQL 语句
-            String deleteExtra = "DELETE FROM sc WHERE \"C#\" = '%21'";
+            String deleteSql = "DELETE FROM c211 WHERE \"C#\" = '%21'"; // 删除记录的 SQL 语句
+            String deleteExtra = "DELETE FROM sc211 WHERE \"C#\" = '%21'";
             Statement countStmt = conn.createStatement();
             //countStmt.executeQuery(insertSql)
             countStmt.execute(deleteExtra);
@@ -372,7 +409,7 @@ public class insertExcelData {
 
     public static void deleteSCData() {
         try {
-            String deleteSql = "DELETE FROM sc WHERE \"S#\" ='%11'"; // 删除记录的 SQL 语句
+            String deleteSql = "DELETE FROM sc211 WHERE \"S#\" ='%11'"; // 删除记录的 SQL 语句
             Statement countStmt = conn.createStatement();
             countStmt.execute(deleteSql);
         }catch (SQLException e){
@@ -388,10 +425,10 @@ public class insertExcelData {
             int num = random.nextInt(2);
             String updateSql;
             if(num < 1) {
-                updateSql = "UPDATE student SET height = height+0.1 where \"S#\" = ?";
+                updateSql = "UPDATE s211 SET height = height+0.1 where \"S#\" = ?";
             }
             else{
-                updateSql = "UPDATE student SET dorm = \'教务处\' where \"S#\" = ? ";
+                updateSql = "UPDATE s211 SET dorm = \'教务处\' where \"S#\" = ? ";
             }
 
             PreparedStatement stmt = conn.prepareStatement(updateSql);
@@ -417,9 +454,9 @@ public class insertExcelData {
             int con = random.nextInt(2);
             String updateSql;
             if(con < 1){
-                updateSql = "UPDATE course SET period = 0 where \"C#\" = ?";
+                updateSql = "UPDATE c211 SET period = 0 where \"C#\" = ?";
             }else{
-                updateSql = "UPDATE course SET teacher = \'TEST老师\' where \"C#\" = ?";
+                updateSql = "UPDATE c211 SET teacher = \'TEST老师\' where \"C#\" = ?";
             }
             PreparedStatement stmt = conn.prepareStatement(updateSql);
             stmt.setString(1, course.getId());
@@ -443,7 +480,7 @@ public class insertExcelData {
             int index = random.nextInt(students.size());
             Student student = students.get(index);
             long sId = student.getId();
-            String selectSql = "SELECT * FROM student WHERE \"S#\" = ?";
+            String selectSql = "SELECT * FROM s211 WHERE \"S#\" = ?";
             PreparedStatement stmt = conn.prepareStatement(selectSql);
             stmt.setLong(1, sId);
             ResultSet rs = stmt.executeQuery();
@@ -469,7 +506,7 @@ public class insertExcelData {
             int index = random.nextInt(courses.size());
             Course course = courses.get(index);
             String cId = course.getId();
-            String selectSql = "SELECT * FROM course WHERE \"C#\" = ?";
+            String selectSql = "SELECT * FROM c211 WHERE \"C#\" = ?";
             PreparedStatement stmt = conn.prepareStatement(selectSql);
             stmt.setString(1, cId);
             ResultSet rs = stmt.executeQuery();
@@ -490,10 +527,10 @@ public class insertExcelData {
 
     public static void fixCourse(){
         try {
-            String sql = "INSERT INTO course (\"C#\", cname, period, credit, teacher) VALUES (?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO c211 (\"C#\", cname, period, credit, teacher) VALUES (?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
             for (Course course : courses) {
-                String querySql = "SELECT 1 FROM course WHERE \"C#\" = ?";
+                String querySql = "SELECT 1 FROM c211 WHERE \"C#\" = ?";
                 PreparedStatement queryStmt = conn.prepareStatement(querySql);
                 queryStmt.setString(1, course.getId());
                 ResultSet rs = queryStmt.executeQuery();
@@ -513,10 +550,10 @@ public class insertExcelData {
     }
     private static void fixStudent(){
         try {
-            String sql = "INSERT INTO student (\"S#\", sname, sex, bdate, height, dorm) VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO s211 (\"S#\", sname, sex, bdate, height, dorm) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
             for (Student student : students) {
-                String querySql = "SELECT 1 FROM student WHERE \"S#\" = ?";
+                String querySql = "SELECT 1 FROM s211 WHERE \"S#\" = ?";
                 PreparedStatement queryStmt = conn.prepareStatement(querySql);
                 queryStmt.setLong(1, student.getId());
                 ResultSet rs = queryStmt.executeQuery();
@@ -539,11 +576,11 @@ public class insertExcelData {
 
     public static void fixSC(){
         try {
-            String sql = "INSERT INTO sc (\"S#\",\"C#\", grade) VALUES (?, ?, ?)";
+            String sql = "INSERT INTO sc211 (\"S#\",\"C#\", grade) VALUES (?, ?, ?)";
             PreparedStatement stmt = conn.prepareStatement(sql);
             System.out.println("the size is "+ SCs.size());
             for (SC sc : SCs) {
-                String querySql = "SELECT 1 FROM sc WHERE \"S#\" = ? AND \"C#\" = ?";
+                String querySql = "SELECT 1 FROM sc211 WHERE \"S#\" = ? AND \"C#\" = ?";
                 PreparedStatement queryStmt = conn.prepareStatement(querySql);
                 queryStmt.setLong(1, sc.getSid());
                 queryStmt.setString(2, sc.getCid());

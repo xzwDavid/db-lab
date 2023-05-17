@@ -9,14 +9,25 @@ public class ConcurrentTransactionsDemo {
     public static insertExcelData operateExcel;
     public static  String password;
     public static String user;
+
+    public static String studentFile;
+    public static String courseFile;
+    public static String  scFile;
+
     public static BasicDataSource ds;
     public static String url;
     public static void main(String[] args) throws SQLException {
-        int numThreads = 5;
-        url = "jdbc:postgresql://192.168.1.112:5432/jdbc_db";
+        int numThreads = 1;
+
+        /*------------------------------Your Configuration------------------------------------------*/
+        url = "jdbc:postgresql://192.168.1.112:5432/mydb";
         user = "xzw";
         password = "Xzw@010816";
 
+
+        studentFile = "/Users/xuzhongwei/Downloads/students-20.xlsx";
+        courseFile = "/Users/xuzhongwei/Downloads/courses-20.xlsx";
+        scFile = "/Users/xuzhongwei/Downloads/选课信息.xlsx";
         // 创建数据库连接池
         ds = new BasicDataSource();
         ds.setDriverClassName("org.postgresql.Driver");
