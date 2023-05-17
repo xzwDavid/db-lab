@@ -5,7 +5,10 @@ import java.sql.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.example.dao.Course;
@@ -73,8 +76,13 @@ public class insertExcelData {
                     // skip header row
                     continue;
                 }
+                Long id;
+                if(row.getCell(0).getCellType() == CellType.NUMERIC){
+                    id = (long)row.getCell(0).getNumericCellValue();
+                }else{
+                    id = Long.parseLong(row.getCell(0).getStringCellValue());
+                }
 
-                Long id = Long.parseLong(row.getCell(0).getStringCellValue());
                 String name = row.getCell(1).getStringCellValue();
                 String sex = row.getCell(2).getStringCellValue();
                 String bdate = row.getCell(3).getStringCellValue();
@@ -134,7 +142,19 @@ public class insertExcelData {
                     // skip header row
                     continue;
                 }
-                Long Sid = Long.parseLong(row.getCell(0).getStringCellValue());
+
+                Sheet sheets = workbook.getSheetAt(0);
+
+// 假设你要读取第一行，获取第一个单元格
+                Long Sid;
+                // cell.getCellType();
+                //System.out.println("The type is "+ row.getCell(0).getCellType()+"SC");
+                if(row.getCell(0).getCellType() == CellType.NUMERIC){
+                    Sid = (long)row.getCell(0).getNumericCellValue();
+                }else{
+                    Sid = Long.parseLong(row.getCell(0).getStringCellValue());
+                }
+                //= (long)row.getCell(0).getNumericCellValue();
                 String Cid = row.getCell(1).getStringCellValue();
                 int grade = (int) row.getCell(2).getNumericCellValue();
 

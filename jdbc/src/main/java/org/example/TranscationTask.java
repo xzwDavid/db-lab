@@ -30,20 +30,22 @@ class TransactionTask implements Runnable {
         Connection conn = null;
         try {
             conn = ds.getConnection();
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 1000; i++) {
                 Random random = new Random();
-//                int index = random.nextInt(20);
-                int index = 1;
-
-                switch (index) {
-                    case 1:
-                        sqlOp.InsertAndDeleteStu(conn);
-                        break;
-                    default:
-                        //sqlOp.InsertAndRead();
-                        insertExcelData.insertStudentData(conn);
-                        break;
+                int index = random.nextInt(20);
+//                int index = 1;
+                for(int j = 0; j< 5; j++) {
+                    switch (index) {
+                        case 1:
+                            sqlOp.InsertAndDeleteStu(conn);
+                            break;
+                        default:
+                            //sqlOp.InsertAndRead();
+                            insertExcelData.insertStudentData(conn);
+                            break;
+                    }
                 }
+
             switch (index) {
                 case 1:
                     sqlOp.InsertAndDeleteCou(conn);
@@ -53,16 +55,17 @@ class TransactionTask implements Runnable {
                     insertExcelData.insertCourseData(conn);
                     break;
             }
-            switch (index) {
-                case 1:
-                    sqlOp.InsertAndDeleteSC(conn);
-                    break;
-                default:
-                    //sqlOp.InsertAndRead();
-                    insertExcelData.insertSCData(conn);
-                    break;
-            }
-
+                for(int j =0 ;j< 210; j++) {
+                    switch (index) {
+                        case 1:
+                            sqlOp.InsertAndDeleteSC(conn);
+                            break;
+                        default:
+                            //sqlOp.InsertAndRead();
+                            insertExcelData.insertSCData(conn);
+                            break;
+                    }
+                }
             }
             try {
                 if (insertExcelData.conn != null) insertExcelData.conn.close();
